@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-import { getCurrentWindow, LogicalSize } from "@tauri-apps/api/window";
 import { cn } from "@/lib/utils";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "./ui/button";
 
 interface TitleBarProps {

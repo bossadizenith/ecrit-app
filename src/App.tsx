@@ -51,14 +51,10 @@ export default function App() {
     topThreshold: 2,
     leftThreshold: 2,
     onTopEdge: (isNear) => {
-      if (isNear) {
-        handleTitleBarMouseEnter();
-      }
+      if (isNear) handleTitleBarMouseEnter();
     },
     onLeftEdge: (isNear) => {
-      if (isNear) {
-        handleSidebarMouseEnter();
-      }
+      if (isNear) handleSidebarMouseEnter();
     },
   });
 
@@ -76,16 +72,12 @@ export default function App() {
           onMouseLeave={handleSidebarMouseLeave}
         />
         <div className="size-full flex gap-2">
-          <div className="flex-1  rounded p-4 bg-muted">
-            <Button
-              onClick={() => {
-                console.log("nothing is working rn");
-              }}
-            >
-              click me
-            </Button>
+          <div className="flex-1  rounded p-4 bg-muted border border-border">
+            <Button>Click me</Button>
           </div>
-          <div className="flex-1 bg-muted rounded p-4">preview</div>
+          <div className="flex-1 bg-muted rounded p-4 border border-border">
+            preview
+          </div>
         </div>
       </main>
     </div>
