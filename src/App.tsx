@@ -3,6 +3,7 @@ import { TitleBar } from "./components/title-bar";
 import { Sidebar } from "./components/sidebar";
 import { useWindowZoom } from "./hooks/use-window";
 import { useEdgeDetection } from "./hooks/use-edge-detection";
+import { Button } from "./components/ui/button";
 
 export default function App() {
   useWindowZoom();
@@ -62,8 +63,8 @@ export default function App() {
   });
 
   return (
-    <div className="h-screen w-screen bg-transparent">
-      <main className="size-full rounded-md overflow-hidden bg-neutral-950 border shadow-2xl p-2 relative">
+    <div className="h-screen w-screen">
+      <main className="size-full rounded-md overflow-hidden border border-border bg-background shadow-2xl p-2 relative">
         <TitleBar
           isVisible={isTitleBarVisible}
           onMouseEnter={handleTitleBarMouseEnter}
@@ -74,17 +75,17 @@ export default function App() {
           onMouseEnter={handleSidebarMouseEnter}
           onMouseLeave={handleSidebarMouseLeave}
         />
-        <div className="size-full flex gap-2 text-white">
-          <div className="flex-1 bg-neutral-900 rounded p-4">
-            <button
+        <div className="size-full flex gap-2">
+          <div className="flex-1  rounded p-4 bg-muted">
+            <Button
               onClick={() => {
                 console.log("nothing is working rn");
               }}
             >
               click me
-            </button>
+            </Button>
           </div>
-          <div className="flex-1 bg-neutral-900 rounded p-4">preview</div>
+          <div className="flex-1 bg-muted rounded p-4">preview</div>
         </div>
       </main>
     </div>

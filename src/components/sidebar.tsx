@@ -1,3 +1,5 @@
+import { cn } from "@/lib/utils";
+
 interface SidebarProps {
   isVisible?: boolean;
   onMouseEnter?: () => void;
@@ -13,9 +15,10 @@ export const Sidebar = ({
     <div
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      className={`w-96 h-full top-0 z-50 flex absolute p-2 text-neutral-300 transition-all duration-300 ease-in-out ${
+      className={cn(
+        "w-96 h-full top-0 z-50 flex absolute p-2 text-neutral-300 transition-all duration-300 ease-in-out",
         isVisible ? "left-0" : "-left-96"
-      }`}
+      )}
       style={{
         pointerEvents: isVisible ? "auto" : "none",
       }}

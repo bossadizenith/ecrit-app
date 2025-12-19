@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { cn } from "@/lib/utils";
 
 interface TitleBarProps {
   isVisible?: boolean;
@@ -47,9 +48,10 @@ export function TitleBar({
       data-tauri-drag-region
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      className={`h-10 flex absolute w-full left-0 items-center justify-between px-3 bg-neutral-950 text-neutral-300 select-none transition-all duration-300 ease-in-out z-30 ${
+      className={cn(
+        "h-10 flex absolute w-full left-0 items-center justify-between px-3 bg-neutral-950 text-neutral-300 select-none transition-all duration-300 ease-in-out z-30",
         isVisible ? "top-0" : "-top-10"
-      }`}
+      )}
     >
       <div data-tauri-drag-region className="flex items-center gap-2 flex-1">
         <span className="text-sm font-medium opacity-70">ecrit</span>
