@@ -74,8 +74,8 @@ export default function App() {
           onMouseEnter={handleSidebarMouseEnter}
           onMouseLeave={handleSidebarMouseLeave}
         />
-        <div className="size-full flex gap-2">
-          <div className="flex-1 bg-neutral-900 rounded">
+        <div className="size-full flex gap-2 text-white">
+          <div className="flex-1 bg-neutral-900 rounded p-4">
             <button
               onClick={() => {
                 console.log("nothing is working rn");
@@ -84,7 +84,7 @@ export default function App() {
               click me
             </button>
           </div>
-          <div className="flex-1 bg-neutral-900 rounded">preview</div>
+          <div className="flex-1 bg-neutral-900 rounded p-4">preview</div>
         </div>
       </main>
     </div>
