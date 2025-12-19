@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
-import { getCurrentWindow } from "@tauri-apps/api/window";
+import { useEffect, useRef, useState } from "react";
+import { getCurrentWindow, LogicalSize } from "@tauri-apps/api/window";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 
@@ -15,9 +15,30 @@ export function TitleBar({
   onMouseLeave,
 }: TitleBarProps) {
   const titleBarRef = useRef<HTMLDivElement>(null);
+  const [isMaximized, setIsMaximized] = useState(false);
+
   const minimize = async () => await getCurrentWindow().minimize();
-  const maximize = async () => await getCurrentWindow().maximize();
   const close = async () => await getCurrentWindow().close();
+
+  useEffect(() => {
+    const checkMaximized = async () => {
+      const max = await getCurrentWindow().isMaximized();
+      setIsMaximized(max);
+    };
+
+    checkMaximized();
+  }, []);
+
+  const toggleMaximize = async () => {
+    const window = getCurrentWindow();
+    if (isMaximized) {
+      await window.unmaximize();
+      setIsMaximized(false);
+    } else {
+      await window.maximize();
+      setIsMaximized(true);
+    }
+  };
 
   useEffect(() => {
     const titleBar = titleBarRef.current;
@@ -68,7 +89,7 @@ export function TitleBar({
         </Button>
 
         <Button
-          onClick={maximize}
+          onClick={toggleMaximize}
           size="icon"
           className="size-6"
           variant="ghost"

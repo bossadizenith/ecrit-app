@@ -64,7 +64,7 @@ export default function App() {
 
   return (
     <div className="h-screen w-screen">
-      <main className="size-full rounded-md overflow-hidden border border-border bg-background shadow-2xl p-2 relative">
+      <main className="size-full rounded overflow-hidden border border-border bg-background shadow-2xl p-2 relative">
         <TitleBar
           isVisible={isTitleBarVisible}
           onMouseEnter={handleTitleBarMouseEnter}
