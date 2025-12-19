@@ -34,17 +34,27 @@ export function ThemeProvider({
     const handleKeyDown = (event: KeyboardEvent) => {
       const activeElement = document.activeElement;
 
-      if (
-        event.key === "m" &&
-        activeElement &&
-        !["input", "textarea"].includes(activeElement.tagName.toLowerCase())
-      ) {
-        setTheme((prevTheme) => {
-          const newTheme = prevTheme === "light" ? "dark" : "light";
-          localStorage.setItem(storageKey, newTheme);
-          return newTheme;
-        });
+      if (event.key !== "m" || !activeElement) return;
+
+      const isInputOrTextarea =
+        activeElement.tagName.toLowerCase() === "input" ||
+        activeElement.tagName.toLowerCase() === "textarea";
+
+      const isCodeMirrorEditor =
+        activeElement.hasAttribute("contenteditable") &&
+        activeElement.getAttribute("contenteditable") === "true";
+
+      const isInWriter = activeElement.closest("[data-ecrit-writer]") !== null;
+
+      if (isInputOrTextarea || isCodeMirrorEditor || isInWriter) {
+        return;
       }
+
+      setTheme((prevTheme) => {
+        const newTheme = prevTheme === "light" ? "dark" : "light";
+        localStorage.setItem(storageKey, newTheme);
+        return newTheme;
+      });
     };
 
     window.addEventListener("keydown", handleKeyDown);

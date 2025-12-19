@@ -1,9 +1,9 @@
-import { useState, useRef } from "react";
-import { TitleBar } from "./components/title-bar";
+import { useRef, useState } from "react";
+import { Editor } from "./components/editor";
 import { Sidebar } from "./components/sidebar";
-import { useWindowZoom } from "./hooks/use-window";
+import { TitleBar } from "./components/title-bar";
 import { useEdgeDetection } from "./hooks/use-edge-detection";
-import { Button } from "./components/ui/button";
+import { useWindowZoom } from "./hooks/use-window";
 
 export default function App() {
   useWindowZoom();
@@ -71,14 +71,7 @@ export default function App() {
           onMouseEnter={handleSidebarMouseEnter}
           onMouseLeave={handleSidebarMouseLeave}
         />
-        <div className="size-full flex gap-2">
-          <div className="flex-1  rounded p-4 bg-muted border border-border">
-            <Button>Click me</Button>
-          </div>
-          <div className="flex-1 bg-muted rounded p-4 border border-border">
-            preview
-          </div>
-        </div>
+        <Editor />
       </main>
     </div>
   );
