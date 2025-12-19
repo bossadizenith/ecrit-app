@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { cn } from "@/lib/utils";
+import { Button } from "./ui/button";
 
 interface TitleBarProps {
   isVisible?: boolean;
@@ -49,7 +50,7 @@ export function TitleBar({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       className={cn(
-        "h-10 flex absolute w-full left-0 items-center justify-between px-3 bg-neutral-950 text-neutral-300 select-none transition-all duration-300 ease-in-out z-30",
+        "h-10 flex absolute w-full left-0 items-center justify-between px-3 bg-background select-none transition-all duration-300 ease-in-out z-30",
         isVisible ? "top-0" : "-top-10"
       )}
     >
@@ -57,23 +58,32 @@ export function TitleBar({
         <span className="text-sm font-medium opacity-70">ecrit</span>
       </div>
       <div data-tauri-no-drag className="flex items-center gap-2">
-        <button
+        <Button
           onClick={minimize}
-          className="h-6 w-6 rounded hover:bg-neutral-700"
+          size="icon"
+          className="size-6"
+          variant="ghost"
         >
           —
-        </button>
+        </Button>
 
-        <button
+        <Button
           onClick={maximize}
-          className="h-6 w-6 rounded hover:bg-neutral-700"
+          size="icon"
+          className="size-6"
+          variant="ghost"
         >
           ▢
-        </button>
+        </Button>
 
-        <button onClick={close} className="h-6 w-6 rounded hover:bg-red-600/80">
+        <Button
+          onClick={close}
+          size="icon"
+          className="size-6 hover:bg-red-600/80 hover:text-white"
+          variant="ghost"
+        >
           ✕
-        </button>
+        </Button>
       </div>
     </div>
   );
