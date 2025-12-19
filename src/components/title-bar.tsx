@@ -50,7 +50,7 @@ export function TitleBar({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       className={cn(
-        "h-10 flex absolute w-full left-0 items-center justify-between px-3 bg-background select-none transition-all duration-300 ease-in-out z-30",
+        "h-10 flex absolute w-full left-0 items-center justify-between px-3 bg-background select-none transition-all duration-150 border-b border-border ease-in-out z-30",
         isVisible ? "top-0" : "-top-10"
       )}
     >
@@ -79,7 +79,7 @@ export function TitleBar({
         <Button
           onClick={close}
           size="icon"
-          className="size-6 hover:bg-red-600/80 hover:text-white"
+          className="size-6 hover:bg-red-600/80 hover:dark:bg-red-600/80 hover:text-white"
           variant="ghost"
         >
           ✕
