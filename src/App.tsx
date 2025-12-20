@@ -74,7 +74,6 @@ export default function App() {
     },
   });
 
-  // Listen for file open events from the system
   useEffect(() => {
     let unlisten: (() => void) | undefined;
 
