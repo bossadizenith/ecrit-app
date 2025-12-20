@@ -49,7 +49,7 @@ fn emit_file_opened(handle: tauri::AppHandle, path: String) {
     *INITIAL_FILE_PATH.lock().unwrap() = Some(path_str.clone());
 
     std::thread::spawn(move || {
-        std::thread::sleep(std::time::Duration::from_millis(1000));
+        std::thread::sleep(std::time::Duration::from_millis(10));
         let _ = handle.emit("file-opened", path_str);
     });
 }
