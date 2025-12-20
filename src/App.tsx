@@ -1,14 +1,28 @@
 import { useRef, useState } from "react";
 import { Editor } from "./components/editor";
+import { EmptyState } from "./components/editor/empty-state";
 import { Sidebar } from "./components/sidebar";
 import { TitleBar } from "./components/title-bar";
 import { useEdgeDetection } from "./hooks/use-edge-detection";
 import { useWindowZoom } from "./hooks/use-window";
+import { useFiles } from "./hooks/use-files";
 
 export default function App() {
   useWindowZoom();
   const [isTitleBarVisible, setIsTitleBarVisible] = useState(false);
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
+
+  const {
+    files,
+    currentFile,
+    currentFileId,
+    createNewFile,
+    handleOpenFile,
+    handleSaveFile,
+    updateCurrentFileContent,
+    switchToFile,
+    closeFile,
+  } = useFiles();
   const titleBarHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null
   );
@@ -70,8 +84,23 @@ export default function App() {
           isVisible={isSidebarVisible}
           onMouseEnter={handleSidebarMouseEnter}
           onMouseLeave={handleSidebarMouseLeave}
+          files={files}
+          currentFileId={currentFileId}
+          onNewFile={createNewFile}
+          onOpenFile={handleOpenFile}
+          onSaveFile={handleSaveFile}
+          onSwitchFile={switchToFile}
+          onCloseFile={closeFile}
         />
-        <Editor />
+        {currentFile ? (
+          <Editor
+            content={currentFile.content}
+            onContentChange={updateCurrentFileContent}
+            onSave={handleSaveFile}
+          />
+        ) : (
+          <EmptyState onNewFile={createNewFile} onOpenFile={handleOpenFile} />
+        )}
       </main>
     </div>
   );

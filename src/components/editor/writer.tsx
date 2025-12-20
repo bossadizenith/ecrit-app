@@ -5,9 +5,10 @@ import { useCallback, useEffect } from "react";
 interface WriterProps {
   initialDocs: string;
   onChange: (docs: string) => void;
+  onSave?: () => void;
 }
 
-export const Writer = ({ initialDocs, onChange }: WriterProps) => {
+export const Writer = ({ initialDocs, onChange, onSave }: WriterProps) => {
   const handleChange = useCallback(
     (state: EditorState) => onChange(state.doc.toString()),
     [onChange]
@@ -16,6 +17,7 @@ export const Writer = ({ initialDocs, onChange }: WriterProps) => {
   const [ref, editorView] = useCodeMirror<HTMLDivElement>({
     initialDocs,
     onChange: handleChange,
+    onSave,
   });
 
   useEffect(() => {
@@ -27,7 +29,7 @@ export const Writer = ({ initialDocs, onChange }: WriterProps) => {
     <div
       ref={ref}
       data-ecrit-writer
-      className="flex-1 rounded bg-muted border border-border outline-none"
+      className="flex-1 rounded bg-muted border overflow-auto border-border outline-none no-scrollbar"
     />
   );
 };
