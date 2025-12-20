@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Editor } from "./components/editor";
 import { EmptyState } from "./components/editor/empty-state";
 import { Sidebar } from "./components/sidebar";
@@ -6,6 +6,7 @@ import { TitleBar } from "./components/title-bar";
 import { useEdgeDetection } from "./hooks/use-edge-detection";
 import { useWindowZoom } from "./hooks/use-window";
 import { useFiles } from "./hooks/use-files";
+import { listen } from "@tauri-apps/api/event";
 
 export default function App() {
   useWindowZoom();
@@ -22,6 +23,7 @@ export default function App() {
     updateCurrentFileContent,
     switchToFile,
     closeFile,
+    loadFileFromPath,
   } = useFiles();
   const titleBarHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null
@@ -71,6 +73,32 @@ export default function App() {
       if (isNear) handleSidebarMouseEnter();
     },
   });
+
+  // Listen for file open events from the system
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+
+    const setupFileListener = async () => {
+      try {
+        unlisten = await listen<string>("file-opened", (event) => {
+          const filePath = event.payload;
+          if (filePath) {
+            loadFileFromPath(filePath);
+          }
+        });
+      } catch (error) {
+        console.error("Error setting up file open listener:", error);
+      }
+    };
+
+    setupFileListener();
+
+    return () => {
+      if (unlisten) {
+        unlisten();
+      }
+    };
+  }, [loadFileFromPath]);
 
   return (
     <div className="h-screen w-screen">
