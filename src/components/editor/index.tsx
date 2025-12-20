@@ -1,19 +1,29 @@
-import { useCallback, useState } from "react";
-
+import { useCallback } from "react";
 import { Preview } from "./preview";
 import { Writer } from "./writer";
 
-export const Editor = () => {
-  const [docs, setDocs] = useState("");
+interface EditorProps {
+  content: string;
+  onContentChange: (content: string) => void;
+  onSave?: () => void;
+}
 
-  const handleDocsChange = useCallback((docs: string) => {
-    setDocs(docs);
-  }, []);
+export const Editor = ({ content, onContentChange, onSave }: EditorProps) => {
+  const handleDocsChange = useCallback(
+    (docs: string) => {
+      onContentChange(docs);
+    },
+    [onContentChange]
+  );
 
   return (
     <div className="size-full flex gap-2">
-      <Writer initialDocs={docs} onChange={handleDocsChange} />
-      <Preview docs={docs} />
+      <Writer
+        initialDocs={content}
+        onChange={handleDocsChange}
+        onSave={onSave}
+      />
+      <Preview docs={content} />
     </div>
   );
 };

@@ -1,14 +1,31 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Editor } from "./components/editor";
+import { EmptyState } from "./components/editor/empty-state";
 import { Sidebar } from "./components/sidebar";
 import { TitleBar } from "./components/title-bar";
 import { useEdgeDetection } from "./hooks/use-edge-detection";
 import { useWindowZoom } from "./hooks/use-window";
+import { useFiles } from "./hooks/use-files";
+import { listen } from "@tauri-apps/api/event";
+import { invoke } from "@tauri-apps/api/core";
 
 export default function App() {
   useWindowZoom();
   const [isTitleBarVisible, setIsTitleBarVisible] = useState(false);
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
+
+  const {
+    files,
+    currentFile,
+    currentFileId,
+    createNewFile,
+    handleOpenFile,
+    handleSaveFile,
+    updateCurrentFileContent,
+    switchToFile,
+    closeFile,
+    loadFileFromPath,
+  } = useFiles();
   const titleBarHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null
   );
@@ -58,11 +75,44 @@ export default function App() {
     },
   });
 
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+
+    const setupFileListener = async () => {
+      try {
+        const initialPath = await invoke<string | null>(
+          "get_initial_file_path"
+        );
+        if (initialPath) {
+          loadFileFromPath(initialPath);
+        }
+
+        unlisten = await listen<string>("file-opened", (event) => {
+          const filePath = event.payload;
+          if (filePath) {
+            loadFileFromPath(filePath);
+          }
+        });
+      } catch (error) {
+        console.error("Error setting up file open listener:", error);
+      }
+    };
+
+    setupFileListener();
+
+    return () => {
+      if (unlisten) {
+        unlisten();
+      }
+    };
+  }, [loadFileFromPath]);
+
   return (
     <div className="h-screen w-screen">
       <main className="size-full rounded overflow-hidden border border-border bg-background shadow-2xl p-2 relative">
         <TitleBar
           isVisible={isTitleBarVisible}
+          currentFile={currentFile}
           onMouseEnter={handleTitleBarMouseEnter}
           onMouseLeave={handleTitleBarMouseLeave}
         />
@@ -70,8 +120,23 @@ export default function App() {
           isVisible={isSidebarVisible}
           onMouseEnter={handleSidebarMouseEnter}
           onMouseLeave={handleSidebarMouseLeave}
+          files={files}
+          currentFileId={currentFileId}
+          onNewFile={createNewFile}
+          onOpenFile={handleOpenFile}
+          onSaveFile={handleSaveFile}
+          onSwitchFile={switchToFile}
+          onCloseFile={closeFile}
         />
-        <Editor />
+        {currentFile ? (
+          <Editor
+            content={currentFile.content}
+            onContentChange={updateCurrentFileContent}
+            onSave={handleSaveFile}
+          />
+        ) : (
+          <EmptyState onNewFile={createNewFile} onOpenFile={handleOpenFile} />
+        )}
       </main>
     </div>
   );

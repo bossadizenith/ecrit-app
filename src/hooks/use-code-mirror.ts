@@ -1,4 +1,5 @@
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
+import { EditorState, Prec } from "@codemirror/state";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import {
   bracketMatching,
@@ -8,8 +9,6 @@ import {
 } from "@codemirror/language";
 import { tags } from "@lezer/highlight";
 import { languages } from "@codemirror/language-data";
-import { EditorState } from "@codemirror/state";
-// import { oneDark } from "@codemirror/theme-one-dark";
 import {
   EditorView,
   highlightActiveLine,
@@ -55,6 +54,7 @@ const customHighlightStyle = HighlightStyle.define([
 interface Props {
   initialDocs: string;
   onChange?: (state: EditorState) => void;
+  onSave?: () => void;
 }
 
 export const useCodeMirror = <T extends Element>(
@@ -63,6 +63,7 @@ export const useCodeMirror = <T extends Element>(
   const refContainer = useRef<T>(null);
   const [editorView, setEditorView] = useState<EditorView>();
   const onChangeRef = useRef(props.onChange);
+  const onSaveRef = useRef(props.onSave);
   const isInitializedRef = useRef(false);
   const lastExternalValueRef = useRef(props.initialDocs);
 
@@ -71,11 +72,30 @@ export const useCodeMirror = <T extends Element>(
   }, [props.onChange]);
 
   useEffect(() => {
+    onSaveRef.current = props.onSave;
+  }, [props.onSave]);
+
+  useEffect(() => {
     if (!refContainer.current || isInitializedRef.current) return;
+
+    const saveKeymap = keymap.of([
+      {
+        key: "Mod-s",
+        preventDefault: true,
+        run: () => {
+          if (onSaveRef.current) {
+            onSaveRef.current();
+            return true;
+          }
+          return false;
+        },
+      },
+    ]);
 
     const startState = EditorState.create({
       doc: props.initialDocs,
       extensions: [
+        Prec.highest(saveKeymap),
         keymap.of([...defaultKeymap, ...historyKeymap]),
         lineNumbers(),
         highlightActiveLineGutter(),
@@ -88,7 +108,6 @@ export const useCodeMirror = <T extends Element>(
           codeLanguages: languages,
           addKeymap: true,
         }),
-        // oneDark,
         syntaxHighlighting(customHighlightStyle),
         transparentTheme,
         EditorView.lineWrapping,

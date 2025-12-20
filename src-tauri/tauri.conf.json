@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "ecrit-app",
+  "productName": "ecrit",
   "version": "0.1.0",
   "identifier": "com.bkm.ecrit-app",
   "build": {
@@ -33,6 +33,14 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
+    ],
+    "fileAssociations": [
+      {
+        "ext": ["md"],
+        "mimeType": "text/markdown",
+        "name": "Markdown File",
+        "role": "Editor"
+      }
     ]
   }
 }
