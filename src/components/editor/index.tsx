@@ -4,7 +4,7 @@ import { Preview } from "./preview";
 import { Writer } from "./writer";
 
 export const Editor = () => {
-  const [docs, setDocs] = useState("# Hello Zenith");
+  const [docs, setDocs] = useState("");
 
   const handleDocsChange = useCallback((docs: string) => {
     setDocs(docs);

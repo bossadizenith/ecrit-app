@@ -221,17 +221,10 @@ body,
   font-style: normal;
 }
 
-/*
-
-.prose,
-.prose * {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif !important;
+figure {
+  margin: 0;
 }
 
-.prose code,
-.prose pre,
-.cm-editor .cm-content code {
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
-    "Liberation Mono", monospace !important;
-} */
+figure pre {
+  font-family: "Geist Mono", monospace !important;
+}

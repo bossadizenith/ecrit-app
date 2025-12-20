@@ -1,7 +1,6 @@
 import { useCodeMirror } from "@/hooks/use-code-mirror";
-import { Button } from "../ui/button";
-import { useCallback, useEffect } from "react";
 import { EditorState } from "@codemirror/state";
+import { useCallback, useEffect } from "react";
 
 interface WriterProps {
   initialDocs: string;

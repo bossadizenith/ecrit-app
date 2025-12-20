@@ -9,7 +9,7 @@ import {
 import { tags } from "@lezer/highlight";
 import { languages } from "@codemirror/language-data";
 import { EditorState } from "@codemirror/state";
-import { oneDark } from "@codemirror/theme-one-dark";
+// import { oneDark } from "@codemirror/theme-one-dark";
 import {
   EditorView,
   highlightActiveLine,
@@ -88,7 +88,7 @@ export const useCodeMirror = <T extends Element>(
           codeLanguages: languages,
           addKeymap: true,
         }),
-        oneDark,
+        // oneDark,
         syntaxHighlighting(customHighlightStyle),
         transparentTheme,
         EditorView.lineWrapping,
