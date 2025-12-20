@@ -1,9 +1,18 @@
 use tauri::{Emitter, Manager};
 use std::path::PathBuf;
+use std::sync::Mutex;
+
+static INITIAL_FILE_PATH: Mutex<Option<String>> = Mutex::new(None);
 
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
+}
+
+#[tauri::command]
+fn get_initial_file_path() -> Option<String> {
+    let mut path = INITIAL_FILE_PATH.lock().unwrap();
+    path.take()
 }
 
 #[tauri::command]
@@ -18,7 +27,7 @@ fn toggle_devtools(webview_window: tauri::WebviewWindow, open: bool) {
     }
 }
 
-fn emit_file_opened(handle: tauri::AppHandle, path: String) {
+fn normalize_path(path: String) -> String {
     let path_buf = PathBuf::from(&path);
     let absolute_path = if path_buf.is_absolute() {
         path_buf.canonicalize().unwrap_or(path_buf)
@@ -31,11 +40,16 @@ fn emit_file_opened(handle: tauri::AppHandle, path: String) {
             Err(_) => path_buf,
         }
     };
+    absolute_path.to_string_lossy().to_string()
+}
 
-    let path_str = absolute_path.to_string_lossy().to_string();
+fn emit_file_opened(handle: tauri::AppHandle, path: String) {
+    let path_str = normalize_path(path.clone());
+
+    *INITIAL_FILE_PATH.lock().unwrap() = Some(path_str.clone());
 
     std::thread::spawn(move || {
-        std::thread::sleep(std::time::Duration::from_millis(300));
+        std::thread::sleep(std::time::Duration::from_millis(1000));
         let _ = handle.emit("file-opened", path_str);
     });
 }
@@ -77,7 +91,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
-        .invoke_handler(tauri::generate_handler![greet, toggle_devtools])
+        .invoke_handler(tauri::generate_handler![greet, toggle_devtools, get_initial_file_path])
         .setup(|app| {
             let handle = app.handle().clone();
 

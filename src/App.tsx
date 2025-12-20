@@ -7,6 +7,7 @@ import { useEdgeDetection } from "./hooks/use-edge-detection";
 import { useWindowZoom } from "./hooks/use-window";
 import { useFiles } from "./hooks/use-files";
 import { listen } from "@tauri-apps/api/event";
+import { invoke } from "@tauri-apps/api/core";
 
 export default function App() {
   useWindowZoom();
@@ -79,6 +80,13 @@ export default function App() {
 
     const setupFileListener = async () => {
       try {
+        const initialPath = await invoke<string | null>(
+          "get_initial_file_path"
+        );
+        if (initialPath) {
+          loadFileFromPath(initialPath);
+        }
+
         unlisten = await listen<string>("file-opened", (event) => {
           const filePath = event.payload;
           if (filePath) {
@@ -104,6 +112,7 @@ export default function App() {
       <main className="size-full rounded overflow-hidden border border-border bg-background shadow-2xl p-2 relative">
         <TitleBar
           isVisible={isTitleBarVisible}
+          currentFile={currentFile}
           onMouseEnter={handleTitleBarMouseEnter}
           onMouseLeave={handleTitleBarMouseLeave}
         />

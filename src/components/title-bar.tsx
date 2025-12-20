@@ -2,11 +2,13 @@ import { cn } from "@/lib/utils";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "./ui/button";
+import { OpenFile } from "@/hooks/use-files";
 
 interface TitleBarProps {
   isVisible?: boolean;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
+  currentFile: OpenFile | null;
 }
 
 export function TitleBar({
