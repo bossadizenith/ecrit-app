@@ -12,14 +12,9 @@ import {
 } from "@codemirror/view";
 import React, { useEffect, useRef, useState } from "react";
 import { getVitesseTheme } from "@/lib/vitesse-theme";
+import { useTheme } from "@/components/theme-provider";
 
 const systemFont = '"Geist Mono", monospace';
-
-function getCurrentTheme(): boolean {
-  if (typeof window === "undefined") return false;
-  const root = document.documentElement;
-  return root.classList.contains("dark");
-}
 
 interface Props {
   initialDocs: string;
@@ -30,13 +25,13 @@ interface Props {
 export const useCodeMirror = <T extends Element>(
   props: Props
 ): [React.RefObject<T | null>, EditorView?] => {
+  const { theme } = useTheme();
   const refContainer = useRef<T>(null);
   const [editorView, setEditorView] = useState<EditorView>();
   const onChangeRef = useRef(props.onChange);
   const onSaveRef = useRef(props.onSave);
   const isInitializedRef = useRef(false);
   const lastExternalValueRef = useRef(props.initialDocs);
-  const [isDark, setIsDark] = useState(getCurrentTheme());
   const themeCompartmentRef = useRef<Compartment | null>(null);
 
   useEffect(() => {
@@ -48,36 +43,38 @@ export const useCodeMirror = <T extends Element>(
   }, [props.onSave]);
 
   useEffect(() => {
-    const checkTheme = () => {
-      const newIsDark = getCurrentTheme();
-      if (newIsDark !== isDark) {
-        setIsDark(newIsDark);
-      }
-    };
-
-    const observer = new MutationObserver(checkTheme);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    mediaQuery.addEventListener("change", checkTheme);
-
-    return () => {
-      observer.disconnect();
-      mediaQuery.removeEventListener("change", checkTheme);
-    };
-  }, [isDark]);
-
-  useEffect(() => {
     if (!editorView || !themeCompartmentRef.current) return;
 
-    const vitesseTheme = getVitesseTheme(isDark);
+    const getIsDark = () => {
+      if (theme === "dark") return true;
+      if (theme === "light") return false;
+      return window.matchMedia("(prefers-color-scheme: dark)").matches;
+    };
+
+    const currentIsDark = getIsDark();
+    const vitesseTheme = getVitesseTheme(currentIsDark);
     editorView.dispatch({
-      effects: themeCompartmentRef.current.reconfigure(vitesseTheme),
+      effects: themeCompartmentRef.current.reconfigure([...vitesseTheme]),
     });
-  }, [isDark, editorView]);
+
+    if (theme === "system") {
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      const handleSystemThemeChange = () => {
+        const newIsDark = getIsDark();
+        const newVitesseTheme = getVitesseTheme(newIsDark);
+        editorView.dispatch({
+          effects: themeCompartmentRef.current!.reconfigure([
+            ...newVitesseTheme,
+          ]),
+        });
+      };
+
+      mediaQuery.addEventListener("change", handleSystemThemeChange);
+      return () => {
+        mediaQuery.removeEventListener("change", handleSystemThemeChange);
+      };
+    }
+  }, [theme, editorView]);
 
   useEffect(() => {
     if (!refContainer.current || isInitializedRef.current) return;
@@ -98,7 +95,11 @@ export const useCodeMirror = <T extends Element>(
 
     const themeCompartment = new Compartment();
     themeCompartmentRef.current = themeCompartment;
-    const vitesseTheme = getVitesseTheme(isDark);
+    const currentIsDark =
+      theme === "dark" ||
+      (theme === "system" &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches);
+    const vitesseTheme = getVitesseTheme(currentIsDark);
 
     const startState = EditorState.create({
       doc: props.initialDocs,
