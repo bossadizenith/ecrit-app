@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import {
   openFile,
   saveFile,
@@ -15,8 +15,19 @@ export function useFiles() {
   const [files, setFiles] = useState<OpenFile[]>([]);
   const [currentFileId, setCurrentFileId] = useState<string | null>(null);
   const fileIdCounter = useRef(0);
+  const pendingFileIdRef = useRef<string | null>(null);
 
   const currentFile = files.find((f) => f.id === currentFileId) || null;
+
+  useEffect(() => {
+    if (pendingFileIdRef.current) {
+      const fileExists = files.some((f) => f.id === pendingFileIdRef.current);
+      if (fileExists) {
+        setCurrentFileId(pendingFileIdRef.current);
+        pendingFileIdRef.current = null;
+      }
+    }
+  }, [files]);
 
   const createNewFile = useCallback(() => {
     const id = `new-${Date.now()}-${fileIdCounter.current++}`;
@@ -38,25 +49,36 @@ export function useFiles() {
       const file = await openFile();
       if (!file) return;
 
-      const existingFile = files.find((f) => f.path === file.path);
-      if (existingFile) {
-        setCurrentFileId(existingFile.id);
-        return;
+      let existingFileId: string | null = null;
+      let newFileId: string | null = null;
+
+      setFiles((prev) => {
+        const existingFile = prev.find((f) => f.path === file.path);
+        if (existingFile) {
+          existingFileId = existingFile.id;
+          return prev;
+        }
+
+        const id = `file-${Date.now()}-${fileIdCounter.current++}`;
+        newFileId = id;
+        const newFile: OpenFile = {
+          id,
+          ...file,
+          hasUnsavedChanges: false,
+        };
+
+        return [...prev, newFile];
+      });
+
+      if (existingFileId) {
+        setCurrentFileId(existingFileId);
+      } else if (newFileId) {
+        setCurrentFileId(newFileId);
       }
-
-      const id = `file-${Date.now()}-${fileIdCounter.current++}`;
-      const newFile: OpenFile = {
-        id,
-        ...file,
-        hasUnsavedChanges: false,
-      };
-
-      setFiles((prev) => [...prev, newFile]);
-      setCurrentFileId(id);
     } catch (error) {
       console.error("Error opening file:", error);
     }
-  }, [files]);
+  }, []);
 
   const handleSaveFile = useCallback(async () => {
     if (!currentFile) return;
@@ -68,8 +90,19 @@ export function useFiles() {
       );
       if (!savedPath) return;
 
-      setFiles((prev) =>
-        prev.map((f) =>
+      let existingFileWithPathId: string | null = null;
+
+      setFiles((prev) => {
+        const existingFileWithPath = prev.find(
+          (f) => f.path === savedPath && f.id !== currentFileId
+        );
+
+        if (existingFileWithPath) {
+          existingFileWithPathId = existingFileWithPath.id;
+          return prev.filter((f) => f.id !== currentFileId);
+        }
+
+        return prev.map((f) =>
           f.id === currentFileId
             ? {
                 ...f,
@@ -78,8 +111,12 @@ export function useFiles() {
                 hasUnsavedChanges: false,
               }
             : f
-        )
-      );
+        );
+      });
+
+      if (existingFileWithPathId) {
+        setCurrentFileId(existingFileWithPathId);
+      }
     } catch (error) {
       console.error("Error saving file:", error);
     }
@@ -123,33 +160,39 @@ export function useFiles() {
     [currentFileId]
   );
 
-  const loadFileFromPath = useCallback(
-    async (path: string) => {
-      try {
-        const file = await readFile(path);
-        if (!file) return;
+  const loadFileFromPath = useCallback(async (path: string) => {
+    try {
+      const file = await readFile(path);
+      if (!file) return;
+      const normalizePath = (p: string) =>
+        p.replace(/\\/g, "/").replace(/\/$/, "").toLowerCase();
 
-        const existingFile = files.find((f) => f.path === path);
+      const normalizedInputPath = normalizePath(file.path);
+
+      setFiles((prev) => {
+        const existingFile = prev.find(
+          (f) => normalizePath(f.path) === normalizedInputPath
+        );
+
         if (existingFile) {
-          setCurrentFileId(existingFile.id);
-          return;
+          pendingFileIdRef.current = existingFile.id;
+          return prev;
         }
 
         const id = `file-${Date.now()}-${fileIdCounter.current++}`;
+        pendingFileIdRef.current = id;
         const newFile: OpenFile = {
           id,
           ...file,
           hasUnsavedChanges: false,
         };
 
-        setFiles((prev) => [...prev, newFile]);
-        setCurrentFileId(id);
-      } catch (error) {
-        console.error("Error loading file from path:", error);
-      }
-    },
-    [files]
-  );
+        return [...prev, newFile];
+      });
+    } catch (error) {
+      console.error("Error loading file from path:", error);
+    }
+  }, []);
 
   return {
     files,

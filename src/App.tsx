@@ -94,7 +94,7 @@ export default function App() {
           }
         });
       } catch (error) {
-        console.error("Error setting up file open listener:", error);
+        console.error("Error setting up file listener:", error);
       }
     };
 
@@ -109,7 +109,7 @@ export default function App() {
 
   return (
     <div className="h-screen w-screen">
-      <main className="size-full rounded overflow-hidden border border-border bg-background shadow-2xl p-2 relative">
+      <main className="size-full rounded overflow-hidden border border-border bg-muted shadow-2xl p-2 relative">
         <TitleBar
           isVisible={isTitleBarVisible}
           currentFile={currentFile}

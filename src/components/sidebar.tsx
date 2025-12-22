@@ -32,7 +32,7 @@ export const Sidebar = ({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       className={cn(
-        "w-96 h-full top-0 z-50 flex absolute p-2 transition-all duration-150 ease-in-out",
+        "w-96 h-full top-0 z-50 flex absolute p-2 transition-all duration-150 ease-in-out no-scrollbar",
         isVisible ? "left-0" : "-left-96"
       )}
       style={{
@@ -40,7 +40,6 @@ export const Sidebar = ({
       }}
     >
       <div className="size-full bg-background rounded p-2 border border-border flex flex-col">
-        {/* Header with action buttons */}
         <div className="flex gap-2 mb-4 pb-4 border-b border-border">
           <Button onClick={onNewFile} size="sm" className="flex-1">
             New
