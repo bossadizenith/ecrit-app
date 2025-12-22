@@ -230,6 +230,28 @@ body,
   font-style: normal;
 }
 
+.cm-gutter.cm-lineNumbers {
+  background-color: var(--background);
+  /* border-right: 1px solid var(--border); */
+}
+
+.ͼ2 .cm-activeLine {
+  background-color: var(--muted);
+}
+
+.ͼ2 .cm-activeLineGutter {
+  background-color: var(--muted-foreground);
+  color: var(--background);
+}
+
+.ͼ2 .cm-gutters.cm-gutters-before {
+  @apply border-r border-muted;
+}
+
+.cm-content .cm-lineWrapping {
+  background: red;
+}
+
 figure {
   margin: 0;
 }

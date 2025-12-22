@@ -5,7 +5,7 @@ interface EmptyStateProps {
 
 export const EmptyState = ({ onNewFile, onOpenFile }: EmptyStateProps) => {
   return (
-    <div className="size-full flex items-center justify-center">
+    <div className="size-full flex items-center justify-center bg-background border border-muted-foreground/25">
       <div className="text-center space-y-4 max-w-md">
         <div className="space-y-2">
           <h2 className="text-2xl font-medium text-foreground">No file open</h2>

@@ -15,7 +15,7 @@ interface CodeElementProps {
 
 export const Preview = ({ docs }: PreviewProps) => {
   return (
-    <div className="flex-1 bg-background rounded p-4 border border-border overflow-auto prose prose-sm dark:prose-invert max-w-none no-scrollbar">
+    <div className="flex-1 bg-background rounded p-4 border border-border dark:border-muted-foreground/25 overflow-auto prose prose-sm dark:prose-invert max-w-none no-scrollbar">
       <Markdown
         remarkPlugins={[remarkGfm]}
         components={{

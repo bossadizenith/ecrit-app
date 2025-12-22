@@ -16,6 +16,7 @@ export function useFiles() {
   const [currentFileId, setCurrentFileId] = useState<string | null>(null);
   const fileIdCounter = useRef(0);
   const pendingFileIdRef = useRef<string | null>(null);
+  const previousFileIdRef = useRef<string | null>(null);
 
   const currentFile = files.find((f) => f.id === currentFileId) || null;
 
@@ -137,17 +138,44 @@ export function useFiles() {
     [currentFileId]
   );
 
-  const switchToFile = useCallback((fileId: string) => {
-    setCurrentFileId(fileId);
-  }, []);
+  const switchToFile = useCallback(
+    (fileId: string) => {
+      // Track previous file before switching
+      if (currentFileId && currentFileId !== fileId) {
+        previousFileIdRef.current = currentFileId;
+      }
+      setCurrentFileId(fileId);
+    },
+    [currentFileId]
+  );
 
   const closeFile = useCallback(
-    (fileId: string) => {
+    (fileId: string, skipUnsavedCheck = false) => {
+      const fileToClose = files.find((f) => f.id === fileId);
+
+      if (!skipUnsavedCheck && fileToClose?.hasUnsavedChanges) {
+        return false;
+      }
+
       setFiles((prev) => {
         const newFiles = prev.filter((f) => f.id !== fileId);
 
         if (fileId === currentFileId) {
-          if (newFiles.length > 0) {
+          if (previousFileIdRef.current) {
+            const previousFile = newFiles.find(
+              (f) => f.id === previousFileIdRef.current
+            );
+            if (previousFile) {
+              setCurrentFileId(previousFileIdRef.current);
+              previousFileIdRef.current = null;
+            } else if (newFiles.length > 0) {
+              setCurrentFileId(newFiles[0].id);
+              previousFileIdRef.current = null;
+            } else {
+              setCurrentFileId(null);
+              previousFileIdRef.current = null;
+            }
+          } else if (newFiles.length > 0) {
             setCurrentFileId(newFiles[0].id);
           } else {
             setCurrentFileId(null);
@@ -156,8 +184,9 @@ export function useFiles() {
 
         return newFiles;
       });
+      return true;
     },
-    [currentFileId]
+    [currentFileId, files]
   );
 
   const loadFileFromPath = useCallback(async (path: string) => {

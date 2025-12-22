@@ -29,7 +29,7 @@ export const Writer = ({ initialDocs, onChange, onSave }: WriterProps) => {
     <div
       ref={ref}
       data-ecrit-writer
-      className="flex-1 rounded bg-background border overflow-auto border-border outline-none no-scrollbar"
+      className="flex-1 rounded bg-background border overflow-auto border-border dark:border-muted-foreground/25 outline-none no-scrollbar"
     />
   );
 };
