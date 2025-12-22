@@ -232,7 +232,6 @@ body,
 
 .cm-gutter.cm-lineNumbers {
   background-color: var(--background);
-  /* border-right: 1px solid var(--border); */
 }
 
 .ͼ2 .cm-activeLine {
@@ -241,15 +240,11 @@ body,
 
 .ͼ2 .cm-activeLineGutter {
   background-color: var(--muted-foreground);
-  color: var(--background);
+  color: var(--primary) !important;
 }
 
 .ͼ2 .cm-gutters.cm-gutters-before {
   @apply border-r border-muted;
-}
-
-.cm-content .cm-lineWrapping {
-  background: red;
 }
 
 figure {

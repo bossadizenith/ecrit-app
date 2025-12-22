@@ -19,7 +19,7 @@ export function Code({ code }: CodeProps) {
   useEffect(() => {
     const currentTheme = theme || "light";
     const codeTheme =
-      currentTheme === "dark" ? "vitesse-black" : "vitesse-light";
+      currentTheme === "dark" ? "vitesse-dark" : "vitesse-light";
 
     const highlightCode = async () => {
       const file = await unified()
@@ -40,6 +40,7 @@ export function Code({ code }: CodeProps) {
   return (
     <div className="relative w-full antialiased border border-border">
       <section
+        className="text-xl"
         dangerouslySetInnerHTML={{
           __html: highlightedCode,
         }}

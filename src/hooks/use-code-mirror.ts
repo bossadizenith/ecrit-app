@@ -1,13 +1,7 @@
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
-import { EditorState, Prec } from "@codemirror/state";
+import { EditorState, Prec, Compartment } from "@codemirror/state";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
-import {
-  bracketMatching,
-  indentOnInput,
-  HighlightStyle,
-  syntaxHighlighting,
-} from "@codemirror/language";
-import { tags } from "@lezer/highlight";
+import { bracketMatching, indentOnInput } from "@codemirror/language";
 import { languages } from "@codemirror/language-data";
 import {
   EditorView,
@@ -17,39 +11,15 @@ import {
   lineNumbers,
 } from "@codemirror/view";
 import React, { useEffect, useRef, useState } from "react";
+import { getVitesseTheme } from "@/lib/vitesse-theme";
 
 const systemFont = '"Geist Mono", monospace';
 
-export const transparentTheme = EditorView.theme({
-  "&": {
-    backgroundColor: "transparent !important",
-    height: "100%",
-  },
-  ".cm-content": {
-    fontFamily: systemFont,
-  },
-  ".cm-gutters": {
-    fontFamily: systemFont,
-  },
-});
-
-const customHighlightStyle = HighlightStyle.define([
-  {
-    tag: tags.heading1,
-    fontSize: "2.5em",
-    fontWeight: "bold",
-  },
-  {
-    tag: tags.heading2,
-    fontSize: "2em",
-    fontWeight: "bold",
-  },
-  {
-    tag: tags.heading3,
-    fontSize: "1.5em",
-    fontWeight: "bold",
-  },
-]);
+function getCurrentTheme(): boolean {
+  if (typeof window === "undefined") return false;
+  const root = document.documentElement;
+  return root.classList.contains("dark");
+}
 
 interface Props {
   initialDocs: string;
@@ -66,6 +36,8 @@ export const useCodeMirror = <T extends Element>(
   const onSaveRef = useRef(props.onSave);
   const isInitializedRef = useRef(false);
   const lastExternalValueRef = useRef(props.initialDocs);
+  const [isDark, setIsDark] = useState(getCurrentTheme());
+  const themeCompartmentRef = useRef<Compartment | null>(null);
 
   useEffect(() => {
     onChangeRef.current = props.onChange;
@@ -74,6 +46,38 @@ export const useCodeMirror = <T extends Element>(
   useEffect(() => {
     onSaveRef.current = props.onSave;
   }, [props.onSave]);
+
+  useEffect(() => {
+    const checkTheme = () => {
+      const newIsDark = getCurrentTheme();
+      if (newIsDark !== isDark) {
+        setIsDark(newIsDark);
+      }
+    };
+
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    mediaQuery.addEventListener("change", checkTheme);
+
+    return () => {
+      observer.disconnect();
+      mediaQuery.removeEventListener("change", checkTheme);
+    };
+  }, [isDark]);
+
+  useEffect(() => {
+    if (!editorView || !themeCompartmentRef.current) return;
+
+    const vitesseTheme = getVitesseTheme(isDark);
+    editorView.dispatch({
+      effects: themeCompartmentRef.current.reconfigure(vitesseTheme),
+    });
+  }, [isDark, editorView]);
 
   useEffect(() => {
     if (!refContainer.current || isInitializedRef.current) return;
@@ -92,6 +96,10 @@ export const useCodeMirror = <T extends Element>(
       },
     ]);
 
+    const themeCompartment = new Compartment();
+    themeCompartmentRef.current = themeCompartment;
+    const vitesseTheme = getVitesseTheme(isDark);
+
     const startState = EditorState.create({
       doc: props.initialDocs,
       extensions: [
@@ -108,8 +116,18 @@ export const useCodeMirror = <T extends Element>(
           codeLanguages: languages,
           addKeymap: true,
         }),
-        syntaxHighlighting(customHighlightStyle),
-        transparentTheme,
+        themeCompartment.of([...vitesseTheme]),
+        EditorView.theme({
+          "&": {
+            height: "100%",
+          },
+          ".cm-content": {
+            fontFamily: systemFont,
+          },
+          ".cm-gutters": {
+            fontFamily: systemFont,
+          },
+        }),
         EditorView.lineWrapping,
         EditorView.updateListener.of((update) => {
           if (update.changes && onChangeRef.current) {
@@ -131,6 +149,7 @@ export const useCodeMirror = <T extends Element>(
     return () => {
       view.destroy();
       isInitializedRef.current = false;
+      themeCompartmentRef.current = null;
     };
   }, []);
 
