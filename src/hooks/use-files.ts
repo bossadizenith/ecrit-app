@@ -243,18 +243,15 @@ export function useFiles() {
 
   useEffect(() => {
     const restoreHistory = async () => {
-      const history = loadFileHistory();
-      if (!history || history.fileOrder.length === 0) return;
-
       try {
+        const history = loadFileHistory();
+        if (!history || history.fileOrder.length === 0) return;
         const restoredFiles: OpenFile[] = [];
         const fileIdMap = new Map<string, string>();
 
         const historyFilesAny = history.files as
           | FileHistory["files"]
           | Array<FileData>;
-
-        console.log(historyFilesAny);
 
         let historyFiles: Record<string, FileData>;
 
