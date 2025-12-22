@@ -2,6 +2,7 @@ import { isValidElement, type ReactNode } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Code } from "./code";
+import { cn } from "@/lib/utils";
 
 interface PreviewProps {
   docs: string;
@@ -14,7 +15,7 @@ interface CodeElementProps {
 
 export const Preview = ({ docs }: PreviewProps) => {
   return (
-    <div className="flex-1 bg-muted rounded p-4 border border-border overflow-auto prose prose-sm dark:prose-invert max-w-none no-scrollbar">
+    <div className="flex-1 bg-background rounded p-4 border border-border dark:border-muted-foreground/25 overflow-auto prose prose-sm dark:prose-invert max-w-none no-scrollbar">
       <Markdown
         remarkPlugins={[remarkGfm]}
         components={{
@@ -89,6 +90,51 @@ export const Preview = ({ docs }: PreviewProps) => {
           ),
           h3: ({ children }) => (
             <h3 className="text-foreground text-2xl font-medium">{children}</h3>
+          ),
+          hr: () => <hr className="border-border" />,
+          table: ({
+            className,
+            ...props
+          }: React.HTMLAttributes<HTMLTableElement>) => (
+            <div className="w-full overflow-y-auto">
+              <table className={cn("w-full", className)} {...props} />
+            </div>
+          ),
+          tr: ({
+            className,
+            ...props
+          }: React.HTMLAttributes<HTMLTableRowElement>) => (
+            <tr
+              className={cn(
+                "m-0 border-t border-border p-0 even:bg-muted",
+                className
+              )}
+              {...props}
+            />
+          ),
+          th: ({
+            className,
+            ...props
+          }: React.HTMLAttributes<HTMLTableCellElement>) => (
+            <th
+              className={cn(
+                "border border-border px-4 py-2 text-left font-bold [[align=center]]:text-center [[align=right]]:text-right",
+                className
+              )}
+              {...props}
+            />
+          ),
+          td: ({
+            className,
+            ...props
+          }: React.HTMLAttributes<HTMLTableCellElement>) => (
+            <td
+              className={cn(
+                "border border-border px-4 py-2 text-left [[align=center]]:text-center [[align=right]]:text-right",
+                className
+              )}
+              {...props}
+            />
           ),
         }}
       >
