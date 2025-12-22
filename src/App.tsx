@@ -8,6 +8,7 @@ import { useWindowZoom } from "./hooks/use-window";
 import { useFiles } from "./hooks/use-files";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import {
   Dialog,
   DialogContent,
@@ -17,6 +18,7 @@ import {
   DialogTitle,
 } from "./components/ui/dialog";
 import { Button } from "./components/ui/button";
+import { saveFileHistory } from "./lib/file-history";
 
 export default function App() {
   useWindowZoom();
@@ -119,6 +121,37 @@ export default function App() {
       }
     };
   }, [loadFileFromPath]);
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      saveFileHistory(files, currentFileId);
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    let unlistenTauri: (() => void) | undefined;
+    const setupTauriCloseHandler = async () => {
+      try {
+        if (typeof window !== "undefined" && "__TAURI__" in window) {
+          const window_ = getCurrentWindow();
+          unlistenTauri = await window_.onCloseRequested(() => {
+            saveFileHistory(files, currentFileId);
+          });
+        }
+      } catch (error) {
+        console.warn("Could not set up Tauri close handler:", error);
+      }
+    };
+
+    setupTauriCloseHandler();
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      if (unlistenTauri) {
+        unlistenTauri();
+      }
+    };
+  }, [files, currentFileId]);
 
   return (
     <div className="h-screen w-screen">

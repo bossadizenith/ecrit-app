@@ -5,9 +5,21 @@ import {
   readFile,
   type FileInfo,
 } from "@/lib/file-manager";
+import {
+  saveFileHistory,
+  loadFileHistory,
+  type FileHistory,
+} from "@/lib/file-history";
 
 export interface OpenFile extends FileInfo {
   id: string;
+  hasUnsavedChanges: boolean;
+}
+
+export interface FileData {
+  path: string;
+  name: string;
+  content: string;
   hasUnsavedChanges: boolean;
 }
 
@@ -222,6 +234,133 @@ export function useFiles() {
       console.error("Error loading file from path:", error);
     }
   }, []);
+
+  useEffect(() => {
+    if (files.length > 0 || currentFileId) {
+      saveFileHistory(files, currentFileId);
+    }
+  }, [files, currentFileId]);
+
+  useEffect(() => {
+    const restoreHistory = async () => {
+      const history = loadFileHistory();
+      if (!history || history.fileOrder.length === 0) return;
+
+      try {
+        const restoredFiles: OpenFile[] = [];
+        const fileIdMap = new Map<string, string>();
+
+        const historyFilesAny = history.files as
+          | FileHistory["files"]
+          | Array<FileData>;
+
+        console.log(historyFilesAny);
+
+        let historyFiles: Record<string, FileData>;
+
+        if (Array.isArray(historyFilesAny)) {
+          historyFiles = {};
+          historyFilesAny.forEach((f, idx) => {
+            const oldId = history.fileOrder[idx] || `file-${idx}`;
+            historyFiles[oldId] = f;
+          });
+        } else {
+          historyFiles = historyFilesAny;
+        }
+
+        const filesToRestore = history.fileOrder
+          .map((oldId) => {
+            const historyFile = historyFiles[oldId];
+            return historyFile ? { oldId, historyFile } : null;
+          })
+          .filter(
+            (
+              item
+            ): item is {
+              oldId: string;
+              historyFile: {
+                path: string;
+                name: string;
+                content: string;
+                hasUnsavedChanges: boolean;
+              };
+            } => item !== null
+          );
+
+        for (const { oldId, historyFile } of filesToRestore) {
+          if (!historyFile.path && !historyFile.content.trim()) continue;
+
+          let file: FileInfo;
+          let hasUnsavedChanges = false;
+
+          if (historyFile.path) {
+            try {
+              const diskFile = await readFile(historyFile.path);
+              if (diskFile) {
+                file = diskFile;
+                if (
+                  historyFile.hasUnsavedChanges &&
+                  diskFile.content === historyFile.content
+                ) {
+                  file.content = historyFile.content;
+                  hasUnsavedChanges = true;
+                }
+              } else {
+                continue;
+              }
+            } catch (error) {
+              console.warn(
+                `Could not restore file ${historyFile.path}:`,
+                error
+              );
+              continue;
+            }
+          } else {
+            file = {
+              path: "",
+              name: historyFile.name || "Untitled",
+              content: historyFile.content,
+            };
+            hasUnsavedChanges = historyFile.hasUnsavedChanges;
+          }
+
+          const newId = `file-${Date.now()}-${fileIdCounter.current++}`;
+          fileIdMap.set(oldId, newId);
+          restoredFiles.push({
+            id: newId,
+            ...file,
+            hasUnsavedChanges,
+          });
+        }
+
+        if (restoredFiles.length > 0) {
+          setFiles(restoredFiles);
+
+          if (history.currentFileId) {
+            const newCurrentFileId = fileIdMap.get(history.currentFileId);
+            if (newCurrentFileId) {
+              const restoredCurrentFile = restoredFiles.find(
+                (f) => f.id === newCurrentFileId
+              );
+              if (restoredCurrentFile) {
+                setCurrentFileId(newCurrentFileId);
+              } else if (restoredFiles.length > 0) {
+                setCurrentFileId(restoredFiles[0].id);
+              }
+            } else if (restoredFiles.length > 0) {
+              setCurrentFileId(restoredFiles[0].id);
+            }
+          } else if (restoredFiles.length > 0) {
+            setCurrentFileId(restoredFiles[0].id);
+          }
+        }
+      } catch (error) {
+        console.error("Error restoring file history:", error);
+      }
+    };
+
+    restoreHistory();
+  }, []); // Only run on mount
 
   return {
     files,
