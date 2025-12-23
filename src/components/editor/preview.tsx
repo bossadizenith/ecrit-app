@@ -83,13 +83,13 @@ export const Preview = ({ docs }: PreviewProps) => {
             <li className="pl-1 text-base/7">{children}</li>
           ),
           h1: ({ children }) => (
-            <h1 className="text-foreground text-4xl font-medium">{children}</h1>
+            <h1 className="text-foreground text-4xl font-bold">{children}</h1>
           ),
           h2: ({ children }) => (
-            <h2 className="text-foreground text-3xl font-medium">{children}</h2>
+            <h2 className="text-foreground text-3xl font-bold">{children}</h2>
           ),
           h3: ({ children }) => (
-            <h3 className="text-foreground text-2xl font-medium">{children}</h3>
+            <h3 className="text-foreground text-2xl font-bold">{children}</h3>
           ),
           hr: () => <hr className="border-border" />,
           table: ({

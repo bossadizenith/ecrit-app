@@ -1,7 +1,12 @@
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { EditorState, Prec, Compartment } from "@codemirror/state";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
-import { bracketMatching, indentOnInput } from "@codemirror/language";
+import {
+  bracketMatching,
+  HighlightStyle,
+  indentOnInput,
+  syntaxHighlighting,
+} from "@codemirror/language";
 import { languages } from "@codemirror/language-data";
 import {
   EditorView,
@@ -13,6 +18,7 @@ import {
 import React, { useEffect, useRef, useState } from "react";
 import { getVitesseTheme } from "@/lib/vitesse-theme";
 import { useTheme } from "@/components/theme-provider";
+import { tags } from "@lezer/highlight";
 
 const systemFont = '"Geist Mono", monospace';
 
@@ -21,6 +27,24 @@ interface Props {
   onChange?: (state: EditorState) => void;
   onSave?: () => void;
 }
+
+const customHighlightStyle = HighlightStyle.define([
+  {
+    tag: tags.heading1,
+    fontSize: "2.25rem",
+    fontWeight: "bold",
+  },
+  {
+    tag: tags.heading2,
+    fontSize: "1.875rem",
+    fontWeight: "bold",
+  },
+  {
+    tag: tags.heading3,
+    fontSize: "1.5rem",
+    fontWeight: "bold",
+  },
+]);
 
 export const useCodeMirror = <T extends Element>(
   props: Props
@@ -112,6 +136,7 @@ export const useCodeMirror = <T extends Element>(
         indentOnInput(),
         bracketMatching(),
         highlightActiveLine(),
+        syntaxHighlighting(customHighlightStyle),
         markdown({
           base: markdownLanguage,
           codeLanguages: languages,
