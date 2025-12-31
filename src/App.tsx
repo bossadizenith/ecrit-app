@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { Editor } from "./components/editor";
 import { EmptyState } from "./components/editor/empty-state";
 import { Sidebar } from "./components/sidebar";
@@ -90,6 +90,28 @@ export default function App() {
     },
   });
 
+  const handleCloseFile = useCallback(
+    (fileId: string) => {
+      const file = files.find((f) => f.id === fileId);
+      if (file?.hasUnsavedChanges) {
+        setPendingCloseFileId(fileId);
+        setShowUnsavedDialog(true);
+      } else {
+        closeFile(fileId, true);
+      }
+    },
+    [files, closeFile]
+  );
+
+  const handleEditorClose = useCallback(() => {
+    if (currentFile?.hasUnsavedChanges) {
+      setPendingCloseFileId(currentFile.id);
+      setShowUnsavedDialog(true);
+    } else if (currentFile) {
+      closeFile(currentFile.id, true);
+    }
+  }, [currentFile, closeFile]);
+
   useEffect(() => {
     let unlisten: (() => void) | undefined;
 
@@ -172,29 +194,14 @@ export default function App() {
           onOpenFile={handleOpenFile}
           onSaveFile={handleSaveFile}
           onSwitchFile={switchToFile}
-          onCloseFile={(fileId) => {
-            const file = files.find((f) => f.id === fileId);
-            if (file?.hasUnsavedChanges) {
-              setPendingCloseFileId(fileId);
-              setShowUnsavedDialog(true);
-            } else {
-              closeFile(fileId, true);
-            }
-          }}
+          onCloseFile={handleCloseFile}
         />
         {currentFile ? (
           <Editor
             content={currentFile.content}
             onContentChange={updateCurrentFileContent}
             onSave={handleSaveFile}
-            onClose={() => {
-              if (currentFile.hasUnsavedChanges) {
-                setPendingCloseFileId(currentFile.id);
-                setShowUnsavedDialog(true);
-              } else {
-                closeFile(currentFile.id, true);
-              }
-            }}
+            onClose={handleEditorClose}
           />
         ) : (
           <EmptyState onNewFile={createNewFile} onOpenFile={handleOpenFile} />

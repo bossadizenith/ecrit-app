@@ -236,9 +236,13 @@ export function useFiles() {
   }, []);
 
   useEffect(() => {
-    if (files.length > 0 || currentFileId) {
+    if (files.length === 0 && !currentFileId) return;
+
+    const timeoutId = setTimeout(() => {
       saveFileHistory(files, currentFileId);
-    }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
   }, [files, currentFileId]);
 
   useEffect(() => {

@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { memo, useCallback, useEffect } from "react";
 import { Preview } from "./preview";
 import { Writer } from "./writer";
 
@@ -9,12 +9,12 @@ interface EditorProps {
   onClose?: () => void;
 }
 
-export const Editor = ({
+export const Editor = memo(function Editor({
   content,
   onContentChange,
   onSave,
   onClose,
-}: EditorProps) => {
+}: EditorProps) {
   const handleDocsChange = useCallback(
     (docs: string) => {
       onContentChange(docs);
@@ -44,4 +44,4 @@ export const Editor = ({
       <Preview docs={content} />
     </div>
   );
-};
+});

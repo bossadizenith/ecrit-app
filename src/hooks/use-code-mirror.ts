@@ -156,7 +156,7 @@ export const useCodeMirror = <T extends Element>(
         }),
         EditorView.lineWrapping,
         EditorView.updateListener.of((update) => {
-          if (update.changes && onChangeRef.current) {
+          if (update.docChanged && onChangeRef.current) {
             onChangeRef.current(update.state);
           }
         }),
