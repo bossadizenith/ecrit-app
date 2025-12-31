@@ -32,6 +32,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-markdown": "^10.1.0",
+    "react-scan": "^0.4.3",
     "rehype-parse": "^9.0.1",
     "rehype-pretty-code": "^0.14.1",
     "rehype-stringify": "^10.0.1",

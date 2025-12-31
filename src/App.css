@@ -213,12 +213,22 @@ body,
 
 @layer base {
   body {
-    @apply text-foreground transition-all duration-150;
+    @apply text-foreground;
   }
 }
 
 .ͼ1.cm-focused {
   outline: none !important;
+}
+
+.cm-scroller {
+  overflow: auto !important;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.cm-scroller::-webkit-scrollbar {
+  display: none;
 }
 
 .cm-editor,
@@ -239,8 +249,7 @@ body,
 }
 
 .ͼ2 .cm-activeLineGutter {
-  background-color: var(--muted-foreground);
-  color: var(--primary) !important;
+  @apply bg-muted-foreground/20 dark:bg-muted-foreground/50 text-primary!;
 }
 
 .ͼ2 .cm-gutters.cm-gutters-before {

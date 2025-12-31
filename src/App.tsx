@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { Editor } from "./components/editor";
 import { EmptyState } from "./components/editor/empty-state";
 import { Sidebar } from "./components/sidebar";
@@ -8,6 +8,7 @@ import { useWindowZoom } from "./hooks/use-window";
 import { useFiles } from "./hooks/use-files";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import {
   Dialog,
   DialogContent,
@@ -17,6 +18,7 @@ import {
   DialogTitle,
 } from "./components/ui/dialog";
 import { Button } from "./components/ui/button";
+import { saveFileHistory } from "./lib/file-history";
 
 export default function App() {
   useWindowZoom();
@@ -88,6 +90,28 @@ export default function App() {
     },
   });
 
+  const handleCloseFile = useCallback(
+    (fileId: string) => {
+      const file = files.find((f) => f.id === fileId);
+      if (file?.hasUnsavedChanges) {
+        setPendingCloseFileId(fileId);
+        setShowUnsavedDialog(true);
+      } else {
+        closeFile(fileId, true);
+      }
+    },
+    [files, closeFile]
+  );
+
+  const handleEditorClose = useCallback(() => {
+    if (currentFile?.hasUnsavedChanges) {
+      setPendingCloseFileId(currentFile.id);
+      setShowUnsavedDialog(true);
+    } else if (currentFile) {
+      closeFile(currentFile.id, true);
+    }
+  }, [currentFile, closeFile]);
+
   useEffect(() => {
     let unlisten: (() => void) | undefined;
 
@@ -120,6 +144,37 @@ export default function App() {
     };
   }, [loadFileFromPath]);
 
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      saveFileHistory(files, currentFileId);
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    let unlistenTauri: (() => void) | undefined;
+    const setupTauriCloseHandler = async () => {
+      try {
+        if (typeof window !== "undefined" && "__TAURI__" in window) {
+          const window_ = getCurrentWindow();
+          unlistenTauri = await window_.onCloseRequested(() => {
+            saveFileHistory(files, currentFileId);
+          });
+        }
+      } catch (error) {
+        console.warn("Could not set up Tauri close handler:", error);
+      }
+    };
+
+    setupTauriCloseHandler();
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      if (unlistenTauri) {
+        unlistenTauri();
+      }
+    };
+  }, [files, currentFileId]);
+
   return (
     <div className="h-screen w-screen">
       <main className="size-full rounded overflow-hidden border border-border bg-muted shadow-2xl p-2 relative">
@@ -139,29 +194,14 @@ export default function App() {
           onOpenFile={handleOpenFile}
           onSaveFile={handleSaveFile}
           onSwitchFile={switchToFile}
-          onCloseFile={(fileId) => {
-            const file = files.find((f) => f.id === fileId);
-            if (file?.hasUnsavedChanges) {
-              setPendingCloseFileId(fileId);
-              setShowUnsavedDialog(true);
-            } else {
-              closeFile(fileId, true);
-            }
-          }}
+          onCloseFile={handleCloseFile}
         />
         {currentFile ? (
           <Editor
             content={currentFile.content}
             onContentChange={updateCurrentFileContent}
             onSave={handleSaveFile}
-            onClose={() => {
-              if (currentFile.hasUnsavedChanges) {
-                setPendingCloseFileId(currentFile.id);
-                setShowUnsavedDialog(true);
-              } else {
-                closeFile(currentFile.id, true);
-              }
-            }}
+            onClose={handleEditorClose}
           />
         ) : (
           <EmptyState onNewFile={createNewFile} onOpenFile={handleOpenFile} />

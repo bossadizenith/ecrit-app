@@ -1,6 +1,6 @@
 import { useCodeMirror } from "@/hooks/use-code-mirror";
 import { EditorState } from "@codemirror/state";
-import { useCallback, useEffect } from "react";
+import { memo, useCallback } from "react";
 
 interface WriterProps {
   initialDocs: string;
@@ -8,28 +8,27 @@ interface WriterProps {
   onSave?: () => void;
 }
 
-export const Writer = ({ initialDocs, onChange, onSave }: WriterProps) => {
+export const Writer = memo(function Writer({
+  initialDocs,
+  onChange,
+  onSave,
+}: WriterProps) {
   const handleChange = useCallback(
     (state: EditorState) => onChange(state.doc.toString()),
     [onChange]
   );
 
-  const [ref, editorView] = useCodeMirror<HTMLDivElement>({
+  const [ref] = useCodeMirror<HTMLDivElement>({
     initialDocs,
     onChange: handleChange,
     onSave,
   });
 
-  useEffect(() => {
-    if (editorView) {
-    }
-  }, [editorView]);
-
   return (
     <div
       ref={ref}
       data-ecrit-writer
-      className="flex-1 rounded bg-background border overflow-auto border-border dark:border-muted-foreground/25 outline-none no-scrollbar"
+      className="flex-1 rounded bg-background border overflow-hidden border-border dark:border-muted-foreground/25 outline-none"
     />
   );
-};
+});
